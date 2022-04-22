@@ -184,16 +184,22 @@ var WasmFSLibrary = {
     return wasmFS$backends[backend].freeFile(file);
   },
 
+#if !WASM_BIGINT
+  _wasmfs_jsimpl_write__deps: ['$convertI32PairToI53'],
+#endif
   _wasmfs_jsimpl_write: function(backend, file, buffer, length, {{{ defineI64Param('offset') }}}) {
-    {{{ receiveI64ParamAsDouble('offset') }}}
+    {{{ receiveI64ParamAsDouble('offset', cDefine('EOVERFLOW')) }}}
 #if ASSERTIONS
     assert(wasmFS$backends[backend]);
 #endif
     return wasmFS$backends[backend].write(file, buffer, length, offset);
   },
 
+#if !WASM_BIGINT
+  _wasmfs_jsimpl_read__deps: ['$convertI32PairToI53'],
+#endif
   _wasmfs_jsimpl_read: function(backend, file, buffer, length, {{{ defineI64Param('offset') }}}) {
-    {{{ receiveI64ParamAsDouble('offset') }}}
+    {{{ receiveI64ParamAsDouble('offset', cDefine('EOVERFLOW')) }}}
 #if ASSERTIONS
     assert(wasmFS$backends[backend]);
 #endif
@@ -241,9 +247,16 @@ var WasmFSLibrary = {
     {{{ makeDynCall('vi', 'fptr') }}}(arg);
   },
 
-  _wasmfs_jsimpl_async_write__deps: ['$runtimeKeepalivePush', '$runtimeKeepalivePop'],
+  _wasmfs_jsimpl_async_write__deps: [
+#if !MINIMAL_RUNTIME
+    '$runtimeKeepalivePush', '$runtimeKeepalivePop',
+#endif
+#if !WASM_BIGINT
+    '$convertI32PairToI53',
+#endif
+  ],
   _wasmfs_jsimpl_async_write: async function(backend, file, buffer, length, {{{ defineI64Param('offset') }}}, fptr, arg) {
-    {{{ receiveI64ParamAsDouble('offset') }}}
+    {{{ receiveI64ParamAsDouble('offset', cDefine('EOVERFLOW')) }}}
 #if ASSERTIONS
     assert(wasmFS$backends[backend]);
 #endif
@@ -255,9 +268,16 @@ var WasmFSLibrary = {
     {{{ makeDynCall('vi', 'fptr') }}}(arg);
   },
 
-  _wasmfs_jsimpl_async_read__deps: ['$runtimeKeepalivePush', '$runtimeKeepalivePop'],
+  _wasmfs_jsimpl_async_read__deps: [
+#if !MINIMAL_RUNTIME
+    '$runtimeKeepalivePush', '$runtimeKeepalivePop',
+#endif
+#if !WASM_BIGINT
+    '$convertI32PairToI53',
+#endif
+  ],
   _wasmfs_jsimpl_async_read: async function(backend, file, buffer, length, {{{ defineI64Param('offset') }}}, fptr, arg) {
-    {{{ receiveI64ParamAsDouble('offset') }}}
+    {{{ receiveI64ParamAsDouble('offset', cDefine('EOVERFLOW')) }}}
 #if ASSERTIONS
     assert(wasmFS$backends[backend]);
 #endif

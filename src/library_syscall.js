@@ -610,14 +610,20 @@ var SyscallsLibrary = {
     stringToUTF8(cwd, buf, size);
     return cwdLengthInBytes;
   },
+#if !WASM_BIGINT
+  __syscall_truncate64__deps: ['$convertI32PairToI53'],
+#endif
   __syscall_truncate64: function(path, {{{ defineI64Param('length') }}}) {
-    {{{ receiveI64ParamAsDouble('length') }}}
+    {{{ receiveI64ParamAsDouble('length', -cDefine('EOVERFLOW')) }}}
     path = SYSCALLS.getStr(path);
     FS.truncate(path, length);
     return 0;
   },
+#if !WASM_BIGINT
+  __syscall_ftruncate64__deps: ['$convertI32PairToI53'],
+#endif
   __syscall_ftruncate64: function(fd, {{{ defineI64Param('length') }}}) {
-    {{{ receiveI64ParamAsDouble('length') }}}
+    {{{ receiveI64ParamAsDouble('length', -cDefine('EOVERFLOW')) }}}
     FS.ftruncate(fd, length);
     return 0;
   },
@@ -942,9 +948,12 @@ var SyscallsLibrary = {
     FS.utime(path, atime, mtime);
     return 0;
   },
+#if !WASM_BIGINT
+  __syscall_fallocate__deps: ['$convertI32PairToI53'],
+#endif
   __syscall_fallocate: function(fd, mode, {{{ defineI64Param('offset') }}}, {{{ defineI64Param('len') }}}) {
-    {{{ receiveI64ParamAsDouble('offset') }}}
-    {{{ receiveI64ParamAsDouble('len') }}}
+    {{{ receiveI64ParamAsDouble('offset', -cDefine('EOVERFLOW')) }}}
+    {{{ receiveI64ParamAsDouble('len', -cDefine('EOVERFLOW')) }}}
     var stream = SYSCALLS.getStreamFromFD(fd)
 #if ASSERTIONS
     assert(mode === 0);

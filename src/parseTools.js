@@ -1110,17 +1110,26 @@ function receiveI64ParamAsI32s(name) {
   return '';
 }
 
-// TODO: use this in library_wasi.js and other places. but we need to add an
-//       error-handling hook here.
-function receiveI64ParamAsDouble(name) {
+function receiveI64ParamAsDouble(name, onError) {
   if (WASM_BIGINT) {
     // Just convert the bigint into a double.
-    return `var ${name} = Number(${name}_bigint);`;
+    return `
+      if (${name}_bigint < Number.MIN_SAFE_INTEGER || ${name}_bigint > Number.MAX_SAFE_INTEGER) {
+        abort("I53 overflow");
+        return ${onError};
+      }
+      var ${name} = Number(${name}_bigint);`;
   }
 
-  // Combine the i32 params. Use an unsigned operator on low and shift high by
-  // 32 bits.
-  return `var ${name} = ${name}_high * 0x100000000 + (${name}_low >>> 0);`;
+  // Check if the result of combinding high/low parts would be bigger than
+  // Number.MIN_SAFE_INTEGER (2^53 - 1) or smaller than Number.MAX_SAFE_INTEGER
+  // This happens if the high 32-bits is greater than 2^21.
+  return `
+    if (${name}_high > 0x1fffff || ${name}_high < -0x1fffff) {
+      abort("I53 overflow");
+      return ${onError};
+    }
+    var ${name} = convertI32PairToI53(${name}_low, ${name}_high);`;
 }
 
 function sendI64Argument(low, high) {
