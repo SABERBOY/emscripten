@@ -333,16 +333,17 @@ var LibraryExceptions = {
   __cxa_find_matching_catch__deps: ['$exceptionLast', '$ExceptionInfo', '__resumeException', '__cxa_can_catch'],
   __cxa_find_matching_catch: function() {
     var thrown = exceptionLast;
+    setTempRet0(thrown);
     if (!thrown) {
       // just pass through the null ptr
-      {{{ makeStructuralReturn([0, 0]) }}};
+      return 0;
     }
     var info = new ExceptionInfo(thrown);
     info.set_adjusted_ptr(thrown);
     var thrownType = info.get_type();
     if (!thrownType) {
       // just pass through the thrown ptr
-      {{{ makeStructuralReturn(['thrown', 0]) }}};
+      return 0;
     }
     var typeArray = Array.prototype.slice.call(arguments);
 
@@ -365,10 +366,10 @@ var LibraryExceptions = {
 #if EXCEPTION_DEBUG
         err("  __cxa_find_matching_catch found " + [ptrToString(info.get_adjusted_ptr()), caughtType]);
 #endif
-        {{{ makeStructuralReturn(['thrown', 'caughtType']) }}};
+        return caughtType;
       }
     }
-    {{{ makeStructuralReturn(['thrown', 'thrownType']) }}};
+    return thrownType;
   },
 
   __resumeException__deps: ['$exceptionLast'],
